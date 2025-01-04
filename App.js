@@ -9,7 +9,7 @@ export default function App() {
       <View style={styles.tasksWrapper}>
         <Text style={styles.sectionTitle}>Today's tasks</Text>
 
-        <View style={style.items}>
+        <View style={styles.items}>
           <Task text={'Task 1'} />
           <Task text={'Task 2'} />
 
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 24,
-    fontWeıgh: "bold",
+    fontWeight: "bold",
   },
   items: {
     marginTop: 30,
