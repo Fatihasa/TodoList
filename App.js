@@ -7,9 +7,15 @@ const [task, setTask] = useState();
 const [taskItems, setTaskItems] = useState([]);
 
 const handleAddTask = () => {
-  KeyboardAvoidingView.dismiss();
+  
   setTaskItems([...taskItems, task])
   setTask(null);
+}
+
+const completeTask = (index) => {
+  let itemsCopy = [...taskItems];
+  itemsCopy.splice(index, 1);
+  setTaskItems(itemsCopy);
 }
 
   return (
@@ -21,7 +27,11 @@ const handleAddTask = () => {
         <View style={styles.items}>
           {
             taskItems.map((item,index) => {
-              return <Task key={index} text={item}/>
+              return (
+                <TouchableOpacity key={index} onPress={() => completeTask(index)}>
+                  <Task text={item}/>
+                </TouchableOpacity>
+              )
             })
           }
 
