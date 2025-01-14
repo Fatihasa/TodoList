@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform, Switch } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  Switch,
+} from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Task from './components/Task';
 
 export default function App() {
   const [task, setTask] = useState('');
   const [category, setCategory] = useState('Personal');
+  const [deadline, setDeadline] = useState(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [taskItems, setTaskItems] = useState([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -24,9 +36,21 @@ export default function App() {
 
   const handleAddTask = () => {
     if (task.trim()) {
-      setTaskItems([...taskItems, { text: task.trim(), category, completed: false, key: `${taskItems.length}` }]);
+      const timestamp = new Date().getTime(); // Ensure unique key
+      const formattedDeadline = deadline ? new Date(deadline).toLocaleString() : 'No Deadline';
+      setTaskItems([
+        ...taskItems,
+        {
+          text: task.trim(),
+          category,
+          deadline: formattedDeadline,
+          completed: false,
+          key: `${task.trim()}_${timestamp}`,
+        },
+      ]);
       setTask('');
       setCategory('Personal');
+      setDeadline(null);
     }
   };
 
@@ -52,7 +76,7 @@ export default function App() {
       onLongPress={drag}
       onPress={() => toggleTaskCompletion(taskItems.findIndex((t) => t.key === item.key))}
     >
-      <Task text={item.text} category={item.category} isCompleted={item.completed} />
+      <Task text={`${item.text} (${item.deadline})`} category={item.category} isCompleted={item.completed} />
     </TouchableOpacity>
   );
 
@@ -82,13 +106,15 @@ export default function App() {
 
         <View style={{ flex: 1 }}>
           <DraggableFlatList
-            contentContainerStyle={{ paddingBottom: 60 }} // Adjust padding for better layout
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }}
             data={taskItems}
             renderItem={renderItem}
             keyExtractor={(item) => item.key}
             onDragEnd={({ data }) => setTaskItems(data)}
             ListEmptyComponent={() => (
-              <Text style={styles(isDarkMode).emptyMessage}>No tasks yet. Add a new task!</Text>
+              <View style={styles(isDarkMode).emptyStateContainer}>
+                <Text style={styles(isDarkMode).emptyMessage}>No tasks for today! Add a task to get started.</Text>
+              </View>
             )}
           />
         </View>
@@ -100,27 +126,51 @@ export default function App() {
         )}
 
         <View style={styles(isDarkMode).writeTaskWrapper}>
-          <TextInput
-            style={styles(isDarkMode).input}
-            placeholder="Write a task"
-            placeholderTextColor={isDarkMode ? '#999' : '#666'}
-            value={task}
-            onChangeText={(text) => setTask(text)}
-          />
-          <Picker
-            selectedValue={category}
-            style={styles(isDarkMode).picker}
-            onValueChange={(value) => setCategory(value)}
-          >
-            {categories.map((cat, index) => (
-              <Picker.Item key={index} label={cat} value={cat} />
-            ))}
-          </Picker>
-          <TouchableOpacity onPress={handleAddTask}>
-            <View style={styles(isDarkMode).addWrapper}>
-              <Text style={styles(isDarkMode).addText}>+</Text>
-            </View>
-          </TouchableOpacity>
+          <View style={styles(isDarkMode).row}>
+            <TextInput
+              style={styles(isDarkMode).input}
+              placeholder="Write a task"
+              placeholderTextColor={isDarkMode ? '#999' : '#666'}
+              value={task}
+              onChangeText={(text) => {
+                if (text.length <= 50) setTask(text);
+              }}
+            />
+            <TouchableOpacity onPress={handleAddTask}>
+              <View style={styles(isDarkMode).addWrapper}>
+                <Text style={styles(isDarkMode).addText}>+</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+          <View style={styles(isDarkMode).row}>
+            <Picker
+              selectedValue={category}
+              style={styles(isDarkMode).picker}
+              onValueChange={(value) => setCategory(value)}
+            >
+              {categories.map((cat, index) => (
+                <Picker.Item key={index} label={cat} value={cat} />
+              ))}
+            </Picker>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+              <View style={styles(isDarkMode).datePickerButton}>
+                <Text style={styles(isDarkMode).datePickerText}>
+                  {deadline ? new Date(deadline).toLocaleDateString() : 'Set Deadline'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={new Date()}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowDatePicker(false);
+                  if (selectedDate) setDeadline(selectedDate);
+                }}
+              />
+            )}
+          </View>
         </View>
       </KeyboardAvoidingView>
     </GestureHandlerRootView>
@@ -129,95 +179,19 @@ export default function App() {
 
 const styles = (isDarkMode) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: isDarkMode ? '#121212' : '#F5F5F5',
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingTop: 50,
-      paddingHorizontal: 20,
-      marginBottom: 20,
-    },
-    headerTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: isDarkMode ? '#FFF' : '#000',
-    },
-    themeToggleContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    themeToggleText: {
-      fontSize: 16,
-      color: isDarkMode ? '#FFF' : '#000',
-      marginRight: 10,
-    },
-    taskContainer: {
-      backgroundColor: isDarkMode ? '#1F1F1F' : '#FFF',
-      marginVertical: 5,
-      borderRadius: 10,
-      padding: 10,
-    },
-    activeTask: {
-      backgroundColor: isDarkMode ? '#333333' : '#EFEFEF',
-    },
-    emptyMessage: {
-      textAlign: 'center',
-      marginTop: 20,
-      fontSize: 16,
-      color: isDarkMode ? '#AAA' : '#666',
-    },
-    clearButton: {
-      marginVertical: 10,
-      alignSelf: 'center',
-      padding: 10,
-      backgroundColor: '#FF6B6B',
-      borderRadius: 5,
-    },
-    clearButtonText: {
-      color: '#FFF',
-      fontWeight: 'bold',
-    },
-    writeTaskWrapper: {
-      padding: 10, // Reduced padding
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: isDarkMode ? '#222' : '#fff',
-      borderTopWidth: 1,
-      borderColor: isDarkMode ? '#444' : '#ddd',
-    },
-    input: {
-      paddingVertical: 12,
-      paddingHorizontal: 15,
-      backgroundColor: isDarkMode ? '#333' : '#FFF',
-      borderRadius: 60,
-      borderColor: isDarkMode ? '#444' : '#C0C0C0',
-      borderWidth: 1,
-      flex: 1,
-      marginRight: 10,
-      color: isDarkMode ? '#FFF' : '#000',
-    },
-    picker: {
-      width: 100,
-      color: isDarkMode ? '#FFF' : '#000',
-    },
-    addWrapper: {
-      width: 60,
-      height: 60,
-      backgroundColor: isDarkMode ? '#333' : '#FFF',
-      borderRadius: 60,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderColor: isDarkMode ? '#444' : '#C0C0C0',
-      borderWidth: 1,
-    },
-    addText: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: isDarkMode ? '#FFF' : '#000',
-    },
+    container: { flex: 1, backgroundColor: isDarkMode ? '#121212' : '#F5F5F5' },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 50, paddingHorizontal: 20 },
+    headerTitle: { fontSize: 24, fontWeight: 'bold', color: isDarkMode ? '#FFF' : '#000' },
+    emptyStateContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    emptyMessage: { fontSize: 16,paddingTop:24,  fontWeight: 'bold', color: isDarkMode ? '#AAA' : '#333', textAlign: 'center', paddingHorizontal: 20 },
+    clearButton: { marginVertical: 10, alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#FF6B6B', borderRadius: 8 },
+    clearButtonText: { fontSize: 16, color: '#FFF', fontWeight: 'bold' },
+    writeTaskWrapper: { padding: 10, backgroundColor: isDarkMode ? '#222' : '#fff', borderTopWidth: 1, borderColor: isDarkMode ? '#444' : '#ddd' },
+    row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 5 },
+    input: { flex: 1, marginRight: 10, padding: 10, backgroundColor: isDarkMode ? '#333' : '#fff', borderRadius: 8, color: isDarkMode ? '#fff' : '#000' },
+    picker: { flex: 1, color: isDarkMode ? '#fff' : '#000' },
+    datePickerButton: { padding: 10, borderRadius: 8, backgroundColor: isDarkMode ? '#444' : '#eee' },
+    datePickerText: { color: isDarkMode ? '#fff' : '#000' },
+    addWrapper: { width: 50, height: 50, justifyContent: 'center', alignItems: 'center', backgroundColor: isDarkMode ? '#333' : '#fff', borderRadius: 25, borderWidth: 1, borderColor: isDarkMode ? '#444' : '#ddd' },
+    addText: { fontSize: 24, color: isDarkMode ? '#fff' : '#000' },
   });
