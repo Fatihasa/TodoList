@@ -23,6 +23,7 @@ export default function App() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [taskItems, setTaskItems] = useState([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(''); // Search query state
 
   useEffect(() => {
     const loadTheme = async () => {
@@ -80,6 +81,10 @@ export default function App() {
     </TouchableOpacity>
   );
 
+  const filteredTasks = taskItems.filter((task) =>
+    task.text.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const categories = ['Personal', 'Work', 'Shopping', 'Others'];
 
   return (
@@ -104,16 +109,26 @@ export default function App() {
           </View>
         </View>
 
+        <TextInput
+          style={styles(isDarkMode).searchBar}
+          placeholder="Search tasks..."
+          placeholderTextColor={isDarkMode ? '#999' : '#666'}
+          value={searchQuery}
+          onChangeText={(text) => setSearchQuery(text)}
+        />
+
         <View style={{ flex: 1 }}>
           <DraggableFlatList
             contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }}
-            data={taskItems}
+            data={filteredTasks} // Use filtered tasks here
             renderItem={renderItem}
             keyExtractor={(item) => item.key}
             onDragEnd={({ data }) => setTaskItems(data)}
             ListEmptyComponent={() => (
               <View style={styles(isDarkMode).emptyStateContainer}>
-                <Text style={styles(isDarkMode).emptyMessage}>No tasks for today! Add a task to get started.</Text>
+                <Text style={styles(isDarkMode).emptyMessage}>
+                  {searchQuery ? 'No matching tasks found!' : 'No tasks for today! Add a task to get started.'}
+                </Text>
               </View>
             )}
           />
@@ -182,16 +197,30 @@ const styles = (isDarkMode) =>
     container: { flex: 1, backgroundColor: isDarkMode ? '#121212' : '#F5F5F5' },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 50, paddingHorizontal: 20 },
     headerTitle: { fontSize: 24, fontWeight: 'bold', color: isDarkMode ? '#FFF' : '#000' },
+    themeToggleContainer: { flexDirection: 'row', alignItems: 'center' },
+    themeToggleText: { fontSize: 16, marginRight: 10, color: isDarkMode ? '#FFF' : '#000' },
+    searchBar: {
+      padding: 10,
+      marginHorizontal: 20,
+      marginBottom: 10,
+      backgroundColor: isDarkMode ? '#333' : '#FFF',
+      borderRadius: 8,
+      color: isDarkMode ? '#FFF' : '#000',
+      borderWidth: 1,
+      borderColor: isDarkMode ? '#444' : '#DDD',
+    },
+    taskContainer: { marginVertical: 5, borderRadius: 10, padding: 10, backgroundColor: isDarkMode ? '#1F1F1F' : '#FFF' },
+    activeTask: { backgroundColor: isDarkMode ? '#333333' : '#EFEFEF' },
     emptyStateContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    emptyMessage: { fontSize: 16,paddingTop:24,  fontWeight: 'bold', color: isDarkMode ? '#AAA' : '#333', textAlign: 'center', paddingHorizontal: 20 },
+    emptyMessage: { fontSize: 16, fontWeight: 'bold', color: isDarkMode ? '#AAA' : '#333', textAlign: 'center' },
     clearButton: { marginVertical: 10, alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#FF6B6B', borderRadius: 8 },
     clearButtonText: { fontSize: 16, color: '#FFF', fontWeight: 'bold' },
-    writeTaskWrapper: { padding: 10, backgroundColor: isDarkMode ? '#222' : '#fff', borderTopWidth: 1, borderColor: isDarkMode ? '#444' : '#ddd' },
+    writeTaskWrapper: { padding: 10, backgroundColor: isDarkMode ? '#222' : '#FFF', borderTopWidth: 1, borderColor: isDarkMode ? '#444' : '#DDD' },
     row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 5 },
-    input: { flex: 1, marginRight: 10, padding: 10, backgroundColor: isDarkMode ? '#333' : '#fff', borderRadius: 8, color: isDarkMode ? '#fff' : '#000' },
-    picker: { flex: 1, color: isDarkMode ? '#fff' : '#000' },
-    datePickerButton: { padding: 10, borderRadius: 8, backgroundColor: isDarkMode ? '#444' : '#eee' },
-    datePickerText: { color: isDarkMode ? '#fff' : '#000' },
-    addWrapper: { width: 50, height: 50, justifyContent: 'center', alignItems: 'center', backgroundColor: isDarkMode ? '#333' : '#fff', borderRadius: 25, borderWidth: 1, borderColor: isDarkMode ? '#444' : '#ddd' },
-    addText: { fontSize: 24, color: isDarkMode ? '#fff' : '#000' },
+    input: { flex: 1, marginRight: 10, padding: 10, backgroundColor: isDarkMode ? '#333' : '#FFF', borderRadius: 8, color: isDarkMode ? '#FFF' : '#000' },
+    picker: { flex: 1, color: isDarkMode ? '#FFF' : '#000' },
+    datePickerButton: { padding: 10, borderRadius: 8, backgroundColor: isDarkMode ? '#444' : '#EEE' },
+    datePickerText: { color: isDarkMode ? '#FFF' : '#000' },
+    addWrapper: { width: 50, height: 50, justifyContent: 'center', alignItems: 'center', backgroundColor: isDarkMode ? '#333' : '#FFF', borderRadius: 25, borderWidth: 1, borderColor: isDarkMode ? '#444' : '#DDD' },
+    addText: { fontSize: 24, color: isDarkMode ? '#FFF' : '#000' },
   });
