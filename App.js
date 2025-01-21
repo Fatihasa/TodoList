@@ -17,6 +17,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Task from './components/Task';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Font from 'expo-font';
+import AppLoading from 'expo-app-loading';
 
 const categoryColors = {
   Personal: '#FFE4E1', // Pink
@@ -26,6 +28,7 @@ const categoryColors = {
 };
 
 export default function App() {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
   const [task, setTask] = useState('');
   const [category, setCategory] = useState('Personal');
   const [deadline, setDeadline] = useState(null);
@@ -36,7 +39,16 @@ export default function App() {
   const [lastRemovedTasks, setLastRemovedTasks] = useState([]);
   const [subtaskText, setSubtaskText] = useState('');
 
+  const loadFonts = async () => {
+    await Font.loadAsync({
+      Poppins: require('./assets/fonts/Poppins-Regular.ttf'),
+      'Poppins-Bold': require('./assets/fonts/Poppins-Bold.ttf'),
+    });
+    setFontsLoaded(true);
+  };
+
   useEffect(() => {
+    loadFonts();
     const loadTheme = async () => {
       const savedTheme = await AsyncStorage.getItem('theme');
       if (savedTheme) {
@@ -45,6 +57,11 @@ export default function App() {
     };
     loadTheme();
   }, []);
+
+  if (!fontsLoaded) {
+    return <AppLoading />;
+  }
+
 
   const toggleTheme = async () => {
     const newTheme = !isDarkMode;

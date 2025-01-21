@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
   },
   itemText: {
     maxWidth: '70%',
+    fontFamily: 'Poppins',
   },
   completedText: {
     textDecorationLine: 'line-through',
