@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -16,6 +17,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Task from './components/Task';
 import { MaterialIcons } from '@expo/vector-icons';
+
+const categoryColors = {
+  Personal: '#FFE4E1', // Pink
+  Work: '#E6F7FF', // Light Blue
+  Shopping: '#FFFACD', // Yellow
+  Others: '#E8F5E9', // Light Green
+};
 
 export default function App() {
   const [task, setTask] = useState('');
@@ -108,13 +116,13 @@ export default function App() {
     const completedTasks = taskItems.filter((item) => item.completed);
     const remainingTasks = taskItems.filter((item) => !item.completed);
 
-    setLastRemovedTasks(completedTasks);
+    setLastRemovedTasks([...completedTasks]); // Save a shallow copy of completed tasks
     setTaskItems(remainingTasks);
   };
 
   const undoLastAction = () => {
     if (lastRemovedTasks.length > 0) {
-      setTaskItems([...taskItems, ...lastRemovedTasks]);
+      setTaskItems((prevTasks) => [...prevTasks, ...lastRemovedTasks]); // Append last removed tasks to the current tasks
       setLastRemovedTasks([]);
     }
   };
@@ -130,7 +138,12 @@ export default function App() {
           isOverdue && styles(isDarkMode).overdueTask,
         ]}
       >
-        <View style={styles(isDarkMode).taskContainer}>
+        <View
+          style={[
+            styles(isDarkMode).taskContainer,
+            { backgroundColor: categoryColors[item.category] || (isDarkMode ? '#1F1F1F' : '#FFF') },
+          ]}
+        >
           <TouchableOpacity
             onLongPress={drag}
             onPress={() => toggleTaskCompletion(taskItems.findIndex((t) => t.key === item.key))}
@@ -230,13 +243,6 @@ export default function App() {
             renderItem={renderItem}
             keyExtractor={(item) => item.key}
             onDragEnd={({ data }) => setTaskItems(data)}
-            ListEmptyComponent={() => (
-              <View style={styles(isDarkMode).emptyStateContainer}>
-                <Text style={styles(isDarkMode).emptyMessage}>
-                  {searchQuery ? 'No matching tasks found!' : 'No tasks for today! Add a task to get started.'}
-                </Text>
-              </View>
-            )}
           />
         </View>
 
@@ -331,7 +337,6 @@ const styles = (isDarkMode) =>
       alignItems: 'center',
       padding: 10,
       borderRadius: 10,
-      backgroundColor: isDarkMode ? '#1F1F1F' : '#FFF',
     },
     taskActions: { flexDirection: 'row', alignItems: 'center' },
     subtasksContainer: {
@@ -351,16 +356,42 @@ const styles = (isDarkMode) =>
       borderWidth: 1,
       borderColor: isDarkMode ? '#444' : '#DDD',
     },
-    clearButton: { marginVertical: 10, alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#FF6B6B', borderRadius: 8 },
-    clearButtonText: { fontSize: 16, color: '#FFF', fontWeight: 'bold' },
-    undoButton: { marginVertical: 10, alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#4CAF50', borderRadius: 8 },
-    undoButtonText: { fontSize: 16, color: '#FFF', fontWeight: 'bold' },
-    writeTaskWrapper: { padding: 10, backgroundColor: isDarkMode ? '#222' : '#FFF', borderTopWidth: 1, borderColor: isDarkMode ? '#444' : '#DDD' },
+    writeTaskWrapper: {
+      padding: 10,
+      backgroundColor: isDarkMode ? '#222' : '#FFF',
+      borderTopWidth: 1,
+      borderColor: isDarkMode ? '#444' : '#DDD',
+    },
     row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 5 },
-    input: { flex: 1, marginRight: 10, padding: 10, backgroundColor: isDarkMode ? '#333' : '#FFF', borderRadius: 8, color: isDarkMode ? '#FFF' : '#000' },
+    input: {
+      flex: 1,
+      marginRight: 10,
+      padding: 10,
+      backgroundColor: isDarkMode ? '#333' : '#FFF',
+      borderRadius: 8,
+      color: isDarkMode ? '#FFF' : '#000',
+    },
     picker: { flex: 1, color: isDarkMode ? '#FFF' : '#000' },
     datePickerButton: { padding: 10, borderRadius: 8, backgroundColor: isDarkMode ? '#444' : '#EEE' },
     datePickerText: { color: isDarkMode ? '#FFF' : '#000' },
-    addWrapper: { width: 50, height: 50, justifyContent: 'center', alignItems: 'center', backgroundColor: isDarkMode ? '#333' : '#FFF', borderRadius: 25, borderWidth: 1, borderColor: isDarkMode ? '#444' : '#DDD' },
+    addWrapper: { width: 50, height: 50, justifyContent: 'center', alignItems: 'center', borderRadius: 25 },
     addText: { fontSize: 24, color: isDarkMode ? '#FFF' : '#000' },
+    clearButton: {
+      marginVertical: 10,
+      alignSelf: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      backgroundColor: '#FF6B6B',
+      borderRadius: 8,
+    },
+    clearButtonText: { fontSize: 16, color: '#FFF', fontWeight: 'bold' },
+    undoButton: {
+      marginVertical: 10,
+      alignSelf: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      backgroundColor: '#4CAF50',
+      borderRadius: 8,
+    },
+    undoButtonText: { fontSize: 16, color: '#FFF', fontWeight: 'bold' },
   });
