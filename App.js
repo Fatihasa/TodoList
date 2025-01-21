@@ -39,7 +39,7 @@ export default function App() {
   const handleAddTask = () => {
     if (task.trim()) {
       const timestamp = new Date().getTime(); // Ensure unique key
-      const formattedDeadline = deadline ? new Date(deadline).toLocaleString() : 'No Deadline';
+      const formattedDeadline = deadline ? new Date(deadline).toISOString() : null; // Store deadline as ISO string
       setTaskItems([
         ...taskItems,
         {
@@ -79,14 +79,31 @@ export default function App() {
     await AsyncStorage.setItem('theme', newTheme ? 'dark' : 'light');
   };
 
+  const isOverdue = (deadline) => {
+    if (!deadline) return false;
+    const currentDate = new Date();
+    const deadlineDate = new Date(deadline);
+    return currentDate > deadlineDate; // Compare deadlines with the current date
+  };
+
   const renderItem = ({ item, drag, isActive }) => (
-    <View style={[styles(isDarkMode).taskRow, isActive && styles(isDarkMode).activeTask]}>
+    <View
+      style={[
+        styles(isDarkMode).taskRow,
+        isActive && styles(isDarkMode).activeTask,
+        isOverdue(item.deadline) && styles(isDarkMode).overdueTask, // Highlight overdue tasks
+      ]}
+    >
       <TouchableOpacity
         style={[styles(isDarkMode).taskContainer]}
         onLongPress={drag}
         onPress={() => toggleTaskCompletion(taskItems.findIndex((t) => t.key === item.key))}
       >
-        <Task text={`${item.text} (${item.deadline})`} category={item.category} isCompleted={item.completed} />
+        <Task
+          text={`${item.text}${item.deadline ? ` (Due: ${new Date(item.deadline).toLocaleDateString()})` : ''}`}
+          category={item.category}
+          isCompleted={item.completed}
+        />
       </TouchableOpacity>
       <TouchableOpacity
         style={styles(isDarkMode).favoriteIcon}
@@ -100,11 +117,6 @@ export default function App() {
       </TouchableOpacity>
     </View>
   );
-
-  // Calculate progress
-  const completedTasks = taskItems.filter((item) => item.completed).length;
-  const totalTasks = taskItems.length;
-  const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   const filteredTasks = taskItems.filter((task) =>
     task.text.toLowerCase().includes(searchQuery.toLowerCase())
@@ -141,13 +153,6 @@ export default function App() {
           value={searchQuery}
           onChangeText={(text) => setSearchQuery(text)}
         />
-
-        <View style={styles(isDarkMode).progressContainer}>
-          <View style={[styles(isDarkMode).progressBar, { width: `${progressPercentage}%` }]} />
-          <Text style={styles(isDarkMode).progressText}>
-            {completedTasks}/{totalTasks} tasks completed ({Math.round(progressPercentage)}%)
-          </Text>
-        </View>
 
         <View style={{ flex: 1 }}>
           <DraggableFlatList
@@ -241,18 +246,6 @@ const styles = (isDarkMode) =>
       borderWidth: 1,
       borderColor: isDarkMode ? '#444' : '#DDD',
     },
-    progressContainer: { paddingHorizontal: 20, marginBottom: 10 },
-    progressBar: {
-      height: 10,
-      backgroundColor: '#4caf50',
-      borderRadius: 5,
-    },
-    progressText: {
-      marginTop: 5,
-      fontSize: 14,
-      color: isDarkMode ? '#FFF' : '#000',
-      textAlign: 'center',
-    },
     taskRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -261,6 +254,7 @@ const styles = (isDarkMode) =>
     },
     taskContainer: { flex: 1, marginRight: 10, borderRadius: 10, padding: 10, backgroundColor: isDarkMode ? '#1F1F1F' : '#FFF' },
     activeTask: { backgroundColor: isDarkMode ? '#333333' : '#EFEFEF' },
+    overdueTask: { backgroundColor: '#FFCCCC' }, // Highlight overdue tasks
     favoriteIcon: { marginLeft: 10 },
     emptyStateContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     emptyMessage: { fontSize: 16, fontWeight: 'bold', color: isDarkMode ? '#AAA' : '#333', textAlign: 'center' },
