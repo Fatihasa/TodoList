@@ -23,7 +23,7 @@ export default function App() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [taskItems, setTaskItems] = useState([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const loadTheme = async () => {
@@ -81,6 +81,11 @@ export default function App() {
     </TouchableOpacity>
   );
 
+  // Calculate progress
+  const completedTasks = taskItems.filter((item) => item.completed).length;
+  const totalTasks = taskItems.length;
+  const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
   const filteredTasks = taskItems.filter((task) =>
     task.text.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -117,10 +122,18 @@ export default function App() {
           onChangeText={(text) => setSearchQuery(text)}
         />
 
+        {/* Progress Bar Section */}
+        <View style={styles(isDarkMode).progressContainer}>
+          <View style={[styles(isDarkMode).progressBar, { width: `${progressPercentage}%` }]} />
+          <Text style={styles(isDarkMode).progressText}>
+            {completedTasks}/{totalTasks} tasks completed ({Math.round(progressPercentage)}%)
+          </Text>
+        </View>
+
         <View style={{ flex: 1 }}>
           <DraggableFlatList
             contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }}
-            data={filteredTasks} // Use filtered tasks here
+            data={filteredTasks}
             renderItem={renderItem}
             keyExtractor={(item) => item.key}
             onDragEnd={({ data }) => setTaskItems(data)}
@@ -208,6 +221,18 @@ const styles = (isDarkMode) =>
       color: isDarkMode ? '#FFF' : '#000',
       borderWidth: 1,
       borderColor: isDarkMode ? '#444' : '#DDD',
+    },
+    progressContainer: { paddingHorizontal: 20, marginBottom: 10 },
+    progressBar: {
+      height: 10,
+      backgroundColor: '#4caf50',
+      borderRadius: 5,
+    },
+    progressText: {
+      marginTop: 5,
+      fontSize: 14,
+      color: isDarkMode ? '#FFF' : '#000',
+      textAlign: 'center',
     },
     taskContainer: { marginVertical: 5, borderRadius: 10, padding: 10, backgroundColor: isDarkMode ? '#1F1F1F' : '#FFF' },
     activeTask: { backgroundColor: isDarkMode ? '#333333' : '#EFEFEF' },
