@@ -15,6 +15,7 @@ import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Task from './components/Task';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function App() {
   const [task, setTask] = useState('');
@@ -46,6 +47,7 @@ export default function App() {
           category,
           deadline: formattedDeadline,
           completed: false,
+          favorite: false, // New property for favorite tasks
           key: `${task.trim()}_${timestamp}`,
         },
       ]);
@@ -61,6 +63,12 @@ export default function App() {
     setTaskItems(itemsCopy);
   };
 
+  const toggleTaskFavorite = (index) => {
+    const itemsCopy = [...taskItems];
+    itemsCopy[index].favorite = !itemsCopy[index].favorite;
+    setTaskItems(itemsCopy);
+  };
+
   const clearCompletedTasks = () => {
     setTaskItems(taskItems.filter((item) => !item.completed));
   };
@@ -72,13 +80,25 @@ export default function App() {
   };
 
   const renderItem = ({ item, drag, isActive }) => (
-    <TouchableOpacity
-      style={[styles(isDarkMode).taskContainer, isActive && styles(isDarkMode).activeTask]}
-      onLongPress={drag}
-      onPress={() => toggleTaskCompletion(taskItems.findIndex((t) => t.key === item.key))}
-    >
-      <Task text={`${item.text} (${item.deadline})`} category={item.category} isCompleted={item.completed} />
-    </TouchableOpacity>
+    <View style={[styles(isDarkMode).taskRow, isActive && styles(isDarkMode).activeTask]}>
+      <TouchableOpacity
+        style={[styles(isDarkMode).taskContainer]}
+        onLongPress={drag}
+        onPress={() => toggleTaskCompletion(taskItems.findIndex((t) => t.key === item.key))}
+      >
+        <Task text={`${item.text} (${item.deadline})`} category={item.category} isCompleted={item.completed} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles(isDarkMode).favoriteIcon}
+        onPress={() => toggleTaskFavorite(taskItems.findIndex((t) => t.key === item.key))}
+      >
+        <MaterialIcons
+          name={item.favorite ? 'star' : 'star-border'}
+          size={24}
+          color={item.favorite ? '#FFD700' : isDarkMode ? '#FFF' : '#000'}
+        />
+      </TouchableOpacity>
+    </View>
   );
 
   // Calculate progress
@@ -122,7 +142,6 @@ export default function App() {
           onChangeText={(text) => setSearchQuery(text)}
         />
 
-        {/* Progress Bar Section */}
         <View style={styles(isDarkMode).progressContainer}>
           <View style={[styles(isDarkMode).progressBar, { width: `${progressPercentage}%` }]} />
           <Text style={styles(isDarkMode).progressText}>
@@ -234,8 +253,15 @@ const styles = (isDarkMode) =>
       color: isDarkMode ? '#FFF' : '#000',
       textAlign: 'center',
     },
-    taskContainer: { marginVertical: 5, borderRadius: 10, padding: 10, backgroundColor: isDarkMode ? '#1F1F1F' : '#FFF' },
+    taskRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginVertical: 5,
+    },
+    taskContainer: { flex: 1, marginRight: 10, borderRadius: 10, padding: 10, backgroundColor: isDarkMode ? '#1F1F1F' : '#FFF' },
     activeTask: { backgroundColor: isDarkMode ? '#333333' : '#EFEFEF' },
+    favoriteIcon: { marginLeft: 10 },
     emptyStateContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     emptyMessage: { fontSize: 16, fontWeight: 'bold', color: isDarkMode ? '#AAA' : '#333', textAlign: 'center' },
     clearButton: { marginVertical: 10, alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#FF6B6B', borderRadius: 8 },
