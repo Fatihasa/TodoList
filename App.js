@@ -21,10 +21,10 @@ import * as Font from 'expo-font';
 import AppLoading from 'expo-app-loading';
 
 const categoryColors = {
-  Personal: '#FFE4E1', // Pink
-  Work: '#E6F7FF', // Light Blue
-  Shopping: '#FFFACD', // Yellow
-  Others: '#E8F5E9', // Light Green
+  Personal: '#FFE4E1',
+  Work: '#E6F7FF',
+  Shopping: '#FFFACD',
+  Others: '#E8F5E9',
 };
 
 export default function App() {
@@ -61,7 +61,6 @@ export default function App() {
   if (!fontsLoaded) {
     return <AppLoading />;
   }
-
 
   const toggleTheme = async () => {
     const newTheme = !isDarkMode;
@@ -133,13 +132,13 @@ export default function App() {
     const completedTasks = taskItems.filter((item) => item.completed);
     const remainingTasks = taskItems.filter((item) => !item.completed);
 
-    setLastRemovedTasks([...completedTasks]); // Save a shallow copy of completed tasks
+    setLastRemovedTasks([...completedTasks]);
     setTaskItems(remainingTasks);
   };
 
   const undoLastAction = () => {
     if (lastRemovedTasks.length > 0) {
-      setTaskItems((prevTasks) => [...prevTasks, ...lastRemovedTasks]); // Append last removed tasks to the current tasks
+      setTaskItems((prevTasks) => [...prevTasks, ...lastRemovedTasks]);
       setLastRemovedTasks([]);
     }
   };
@@ -255,7 +254,7 @@ export default function App() {
 
         <View style={{ flex: 1 }}>
           <DraggableFlatList
-            contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 60 }}
             data={filteredTasks}
             renderItem={renderItem}
             keyExtractor={(item) => item.key}
@@ -337,7 +336,7 @@ const styles = (isDarkMode) =>
     searchBar: {
       padding: 10,
       marginHorizontal: 20,
-      marginBottom: 10,
+      marginBottom: 5,
       backgroundColor: isDarkMode ? '#333' : '#FFF',
       borderRadius: 8,
       color: isDarkMode ? '#FFF' : '#000',
@@ -346,27 +345,27 @@ const styles = (isDarkMode) =>
     },
     taskRow: {
       flexDirection: 'column',
-      marginVertical: 5,
+      marginVertical: 2,
     },
     taskContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: 10,
+      padding: 8,
       borderRadius: 10,
     },
     taskActions: { flexDirection: 'row', alignItems: 'center' },
     subtasksContainer: {
       paddingLeft: 20,
-      paddingTop: 10,
+      paddingTop: 8,
     },
-    subtaskRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 5 },
+    subtaskRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 2 },
     subtaskText: { fontSize: 16, color: isDarkMode ? '#FFF' : '#000' },
     subtaskCompleted: { fontSize: 16, color: '#888', textDecorationLine: 'line-through' },
-    addSubtaskRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
+    addSubtaskRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
     subtaskInput: {
       flex: 1,
-      padding: 10,
+      padding: 8,
       backgroundColor: isDarkMode ? '#333' : '#FFF',
       borderRadius: 8,
       color: isDarkMode ? '#FFF' : '#000',
@@ -383,32 +382,32 @@ const styles = (isDarkMode) =>
     input: {
       flex: 1,
       marginRight: 10,
-      padding: 10,
+      padding: 8,
       backgroundColor: isDarkMode ? '#333' : '#FFF',
       borderRadius: 8,
       color: isDarkMode ? '#FFF' : '#000',
     },
     picker: { flex: 1, color: isDarkMode ? '#FFF' : '#000' },
-    datePickerButton: { padding: 10, borderRadius: 8, backgroundColor: isDarkMode ? '#444' : '#EEE' },
+    datePickerButton: { padding: 8, borderRadius: 8, backgroundColor: isDarkMode ? '#444' : '#EEE' },
     datePickerText: { color: isDarkMode ? '#FFF' : '#000' },
-    addWrapper: { width: 50, height: 50, justifyContent: 'center', alignItems: 'center', borderRadius: 25 },
+    addWrapper: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', borderRadius: 20 },
     addText: { fontSize: 24, color: isDarkMode ? '#FFF' : '#000' },
     clearButton: {
       marginVertical: 10,
       alignSelf: 'center',
-      paddingHorizontal: 20,
-      paddingVertical: 10,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
       backgroundColor: '#FF6B6B',
       borderRadius: 8,
     },
-    clearButtonText: { fontSize: 16, color: '#FFF', fontWeight: 'bold' },
+    clearButtonText: { fontSize: 14, color: '#FFF', fontWeight: 'bold' },
     undoButton: {
       marginVertical: 10,
       alignSelf: 'center',
-      paddingHorizontal: 20,
-      paddingVertical: 10,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
       backgroundColor: '#4CAF50',
       borderRadius: 8,
     },
-    undoButtonText: { fontSize: 16, color: '#FFF', fontWeight: 'bold' },
+    undoButtonText: { fontSize: 14, color: '#FFF', fontWeight: 'bold' },
   });
