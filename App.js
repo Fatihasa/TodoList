@@ -48,19 +48,35 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadFonts();
-    const loadTheme = async () => {
+    let isMounted = true;
+
+    const initAsync = async () => {
+      //await loadFonts();
       const savedTheme = await AsyncStorage.getItem('theme');
-      if (savedTheme) {
-        setIsDarkMode(savedTheme === 'dark');
+      if (isMounted) {
+        if (savedTheme) {
+          setIsDarkMode(savedTheme === 'dark');
+        }
+        //setFontsLoaded(true);
       }
     };
-    loadTheme();
+
+    initAsync();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (!fontsLoaded) {
-    return <AppLoading />;
+    //return <AppLoading />;
   }
+
+  // Remaining component logic...
+
+
+// Remaining styles and other parts...
+
 
   const toggleTheme = async () => {
     const newTheme = !isDarkMode;
@@ -168,6 +184,7 @@ export default function App() {
               text={`${item.text}${item.deadline ? ` (Due: ${new Date(item.deadline).toLocaleDateString()})` : ''}`}
               category={item.category}
               isCompleted={item.completed}
+              testID={`app-container`}
             />
           </TouchableOpacity>
           <View style={styles(isDarkMode).taskActions}>
@@ -205,6 +222,7 @@ export default function App() {
                 placeholderTextColor={isDarkMode ? '#999' : '#666'}
                 value={subtaskText}
                 onChangeText={(text) => setSubtaskText(text)}
+                testID="app-container"
               />
               <TouchableOpacity onPress={() => handleAddSubtask(taskItems.findIndex((t) => t.key === item.key))}>
                 <MaterialIcons name="add" size={24} color={isDarkMode ? '#FFF' : '#000'} />
@@ -223,7 +241,10 @@ export default function App() {
   const categories = ['Personal', 'Work', 'Shopping', 'Others'];
 
   return (
-    <GestureHandlerRootView style={styles(isDarkMode).container}>
+    <GestureHandlerRootView 
+      style={styles(isDarkMode).container} 
+      testID="app-container" // Test ID burada eklendi
+    >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : null}
@@ -240,10 +261,11 @@ export default function App() {
               onValueChange={toggleTheme}
               trackColor={{ false: '#767577', true: '#81b0ff' }}
               thumbColor={isDarkMode ? '#f5dd4b' : '#f4f3f4'}
+              testID="app-container"
             />
           </View>
         </View>
-
+  
         <TextInput
           style={styles(isDarkMode).searchBar}
           placeholder="Search tasks..."
@@ -251,29 +273,30 @@ export default function App() {
           value={searchQuery}
           onChangeText={(text) => setSearchQuery(text)}
         />
-
+  
         <View style={{ flex: 1 }}>
           <DraggableFlatList
             contentContainerStyle={{ flexGrow: 1, paddingBottom: 60 }}
             data={filteredTasks}
             renderItem={renderItem}
             keyExtractor={(item) => item.key}
+            testID="app-container"
             onDragEnd={({ data }) => setTaskItems(data)}
           />
         </View>
-
+  
         {taskItems.some((item) => item.completed) && (
           <TouchableOpacity style={styles(isDarkMode).clearButton} onPress={clearCompletedTasks}>
             <Text style={styles(isDarkMode).clearButtonText}>Clear Completed Tasks</Text>
           </TouchableOpacity>
         )}
-
+  
         {lastRemovedTasks.length > 0 && (
           <TouchableOpacity style={styles(isDarkMode).undoButton} onPress={undoLastAction}>
             <Text style={styles(isDarkMode).undoButtonText}>Undo</Text>
           </TouchableOpacity>
         )}
-
+  
         <View style={styles(isDarkMode).writeTaskWrapper}>
           <View style={styles(isDarkMode).row}>
             <TextInput
@@ -284,6 +307,7 @@ export default function App() {
               onChangeText={(text) => {
                 if (text.length <= 50) setTask(text);
               }}
+              testID="app-container"
             />
             <TouchableOpacity onPress={handleAddTask}>
               <View style={styles(isDarkMode).addWrapper}>
@@ -324,6 +348,7 @@ export default function App() {
       </KeyboardAvoidingView>
     </GestureHandlerRootView>
   );
+  
 }
 
 const styles = (isDarkMode) =>
